@@ -11,7 +11,7 @@ import SwiftUI
 class Calculator : ObservableObject {
     
     // Used to update the UI
-    @Published var displayValue = "9"
+    @Published var displayValue = "0"
     
     // Store the current operator
     var currentOp: Operator?
@@ -34,7 +34,7 @@ class Calculator : ObservableObject {
         if label == "CE" {
             displayValue = "0"
             reset()
-                        
+            
         }else if label == "=" {
             equalsClicked()
             
@@ -50,19 +50,19 @@ class Calculator : ObservableObject {
     }
     
     func setDisplayValue (number: Double) {
+        
+        // Don't display a decimal if the number is an integer
+        if number == floor(number) {
+            displayValue = "\(Int(number))"
+            
+            // Otherwise, display the decimal
+        } else {
+            let decimalPlaces = 10
+            displayValue = "\(round(number * pow(10, decimalPlaces)) / pow(10, decimalPlaces))"
+        }
+        
+    }
     
-    // Don't display a decimal if the number is an integer
-    if number == floor(number) {
-        displayValue = "\(Int(number))"
-       
-    // Otherwise, display the decimal
-    } else {
-        let decimalPlaces = 10
-        displayValue = "\(round(number * pow(10, decimalPlaces)) / pow(10, decimalPlaces))"
-    }
-        
-    }
-        
     // Resets the state of the calculator
     func reset() {
         currentOp = nil
@@ -119,6 +119,24 @@ class Calculator : ObservableObject {
     
     func decimalClicked() {
         
+        // If equals was pressed, reset the current numbers
+        if equaled {
+            currentNumber = nil
+            previousNumber = nil
+            equaled = false
+        }
+        
+        // If a "." was type first, sets the current number
+        if currentNumber == nil {
+            currentNumber = 0
+        }
+        
+        // Sets the decimal place
+        decimalPlace = 1
+        
+        // Updates the UI
+        setDisplayValue(number: currentNumber!)
+        displayValue.append(".")
     }
     
     func numberPressed(value: Double) {
@@ -132,20 +150,20 @@ class Calculator : ObservableObject {
         // if there is no current number, set it to the value
         if currentNumber == nil {
             currentNumber = value / pow(10, decimalPlace)
-               
-        // Otherwise, add the value to the current number
-    } else {
-        // if no decimal was typed, at the value as the last digit of the number
-        if decimalPlace == 0 {
-            currentNumber = currentNumber! * 10 + value
             
-//            Otherwise, and the value as the last the decimal of the number
-            
+            // Otherwise, add the value to the current number
         } else {
-            currentNumber = currentNumber! + value / pow(10, decimalPlace)
-            decimalPlace += 1
+            // if no decimal was typed, at the value as the last digit of the number
+            if decimalPlace == 0 {
+                currentNumber = currentNumber! * 10 + value
+                
+                //            Otherwise, and the value as the last the decimal of the number
+                
+            } else {
+                currentNumber = currentNumber! + value / pow(10, decimalPlace)
+                decimalPlace += 1
+            }
         }
-    }
         
         // Update the UI
         setDisplayValue(number: currentNumber!)
@@ -161,7 +179,7 @@ class Calculator : ObservableObject {
             previousNumber = nil
             equaled = false
         }
-            
+        
         // If we have two operands, compute them
         if currentNumber != nil && previousNumber != nil {
             if checkForDivision() {
@@ -185,9 +203,9 @@ class Calculator : ObservableObject {
     }
     
 }
-    
-    func pow (_ base: Int, _ exp: Int) -> Double {
-        return pow(Double(base), Double(exp))
-    }
-    
+
+func pow (_ base: Int, _ exp: Int) -> Double {
+    return pow(Double(base), Double(exp))
+}
+
 
